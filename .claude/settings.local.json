@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:v0-simple-net-worth-dashboard.vercel.app)"
+    ]
+  }
+}
