@@ -9,6 +9,7 @@ import AllocationDonut from '@/components/dashboard/AllocationDonut'
 import CategoryBreakdown from '@/components/dashboard/CategoryBreakdown'
 import GoalTracker from '@/components/dashboard/GoalTracker'
 import RecentActivity from '@/components/dashboard/RecentActivity'
+import ProjectionSimulator from '@/components/dashboard/ProjectionSimulator'
 import { useAssets } from '@/hooks/useAssets'
 import { useLiabilities } from '@/hooks/useLiabilities'
 import { useSnapshots } from '@/hooks/useSnapshots'
@@ -43,6 +44,11 @@ export default function DashboardPage() {
         />
         <GoalTracker netWorth={netWorth} goal={goal} isLoading={goalLoading} />
         <NetWorthChart snapshots={snapshots} isLoading={snapshotsLoading} />
+        <ProjectionSimulator
+          latestSnapshot={latestSnapshot}
+          totalLiabilities={heroTotalLiabilities}
+          isLoading={isLoading || snapshotsLoading}
+        />
         <SnapshotManager
           snapshots={snapshots}
           liabilities={liabilities}
