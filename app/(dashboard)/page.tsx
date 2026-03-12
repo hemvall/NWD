@@ -10,6 +10,10 @@ import CategoryBreakdown from '@/components/dashboard/CategoryBreakdown'
 import GoalTracker from '@/components/dashboard/GoalTracker'
 import RecentActivity from '@/components/dashboard/RecentActivity'
 import ProjectionSimulator from '@/components/dashboard/ProjectionSimulator'
+import KPIIndicators from '@/components/dashboard/KPIIndicators'
+import SavingsRate from '@/components/dashboard/SavingsRate'
+import ComparisonView from '@/components/dashboard/ComparisonView'
+import MonteCarloSimulator from '@/components/dashboard/MonteCarloSimulator'
 import { useAssets } from '@/hooks/useAssets'
 import { useLiabilities } from '@/hooks/useLiabilities'
 import { useSnapshots } from '@/hooks/useSnapshots'
@@ -42,12 +46,21 @@ export default function DashboardPage() {
           snapshots={snapshots}
           isLoading={isLoading || snapshotsLoading}
         />
+        <KPIIndicators snapshots={snapshots} goal={goal} isLoading={snapshotsLoading || goalLoading} />
         <GoalTracker netWorth={netWorth} goal={goal} isLoading={goalLoading} />
         <NetWorthChart snapshots={snapshots} isLoading={snapshotsLoading} />
+        <ComparisonView snapshots={snapshots} isLoading={snapshotsLoading} />
+        <SavingsRate snapshots={snapshots} isLoading={snapshotsLoading} />
         <ProjectionSimulator
           latestSnapshot={latestSnapshot}
           totalLiabilities={heroTotalLiabilities}
           isLoading={isLoading || snapshotsLoading}
+        />
+        <MonteCarloSimulator
+          latestSnapshot={latestSnapshot}
+          totalLiabilities={heroTotalLiabilities}
+          goal={goal}
+          isLoading={isLoading || snapshotsLoading || goalLoading}
         />
         <SnapshotManager
           snapshots={snapshots}

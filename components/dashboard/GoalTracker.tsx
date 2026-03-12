@@ -1,7 +1,6 @@
 'use client'
 
 import { Target } from 'lucide-react'
-import { Progress } from '@/components/ui/progress'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Goal } from '@/lib/types'
 
@@ -13,25 +12,16 @@ interface Props {
 
 export default function GoalTracker({ netWorth, goal, isLoading }: Props) {
   if (isLoading) {
-    return (
-      <div className="bg-white dark:bg-[#0b1526] rounded-2xl border border-slate-200 dark:border-slate-700/60 p-5 animate-pulse">
-        <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700/60 rounded mb-4" />
-        <div className="h-3 w-full bg-slate-100 dark:bg-slate-700/30 rounded" />
-      </div>
-    )
+    return <div className="h-16 glass-inner animate-pulse rounded-xl" />
   }
 
   if (!goal) {
     return (
-      <div className="bg-white dark:bg-[#0b1526] rounded-2xl border border-slate-200 dark:border-slate-700/60 p-5">
-        <div className="flex items-center gap-2 mb-2">
-          <Target className="h-4 w-4 text-slate-400" />
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Net Worth Goal</h3>
-        </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Set a target in{' '}
-          <a href="/settings" className="text-emerald-600 dark:text-emerald-400 hover:underline">Settings</a>
-          {' '}to track your progress.
+      <div className="glass-inner rounded-xl p-4 flex items-center gap-3">
+        <Target className="h-4 w-4 text-white/20" />
+        <p className="text-xs text-white/30">
+          Definissez un objectif dans les{' '}
+          <a href="/settings" className="neon-text-cyan hover:underline">Settings</a>
         </p>
       </div>
     )
@@ -43,28 +33,29 @@ export default function GoalTracker({ netWorth, goal, isLoading }: Props) {
   const remaining = goal.target_net_worth - netWorth
 
   return (
-    <div className="bg-white dark:bg-[#0b1526] rounded-2xl border border-slate-200 dark:border-slate-700/60 p-5">
-      <div className="flex items-center justify-between mb-3">
+    <div className="glass-inner rounded-xl p-4">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Target className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-            {goal.label ?? 'Net Worth Goal'}
-          </h3>
+          <Target className="h-4 w-4 text-cyan-400" />
+          <span className="text-xs font-medium text-white/60">{goal.label ?? 'Objectif'}</span>
         </div>
-        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{progress.toFixed(1)}%</span>
+        <span className="text-xs font-bold font-mono neon-text-cyan">{progress.toFixed(1)}%</span>
       </div>
-      <Progress value={progress} className="h-2 mb-3" />
-      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-        <span>{formatCurrency(netWorth, true)} <span className="text-slate-400">current</span></span>
-        <span className="font-medium text-slate-700 dark:text-slate-300">
-          {remaining > 0 ? `${formatCurrency(remaining, true)} to go` : 'Goal reached!'}
+      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden mb-2">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-1000"
+          style={{ width: `${progress}%`, boxShadow: '0 0 10px rgba(34,211,238,0.3)' }}
+        />
+      </div>
+      <div className="flex items-center justify-between text-[10px] text-white/30">
+        <span className="font-mono">{formatCurrency(netWorth, true)}</span>
+        <span className="font-medium text-white/40">
+          {remaining > 0 ? `${formatCurrency(remaining, true)} restants` : 'Objectif atteint !'}
         </span>
-        <span>{formatCurrency(goal.target_net_worth, true)} <span className="text-slate-400">target</span></span>
+        <span className="font-mono">{formatCurrency(goal.target_net_worth, true)}</span>
       </div>
       {goal.target_date && (
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">
-          Target date: {formatDate(goal.target_date)}
-        </p>
+        <p className="text-[10px] text-white/20 mt-1">Date cible: {formatDate(goal.target_date)}</p>
       )}
     </div>
   )

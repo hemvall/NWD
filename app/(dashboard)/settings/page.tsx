@@ -26,47 +26,47 @@ interface HistoricalEntry {
 const HISTORICAL_SNAPSHOTS: HistoricalEntry[] = [
   {
     date: '2024-09-01', totalAssets: 7850, totalLiabilities: 0,
-    assetDetails: { cto: 1000, livrets: 2700, cryptos: 0, voiture: 2000, montres: 50, cartesPokemon: 100, jeuxPokemon: 1000, autres: 1000 },
+    assetDetails: { immobilier: 0, cto: 1000, livrets: 2700, cryptos: 0, voiture: 2000, montres: 50, cartesPokemon: 100, jeuxPokemon: 1000, autres: 1000 },
     liabilityDetails: { creditImmobilier: 0, creditConsommation: 0, cartesCredit: 0, autres: 0 },
   },
   {
     date: '2025-01-01', totalAssets: 9960, totalLiabilities: 0,
-    assetDetails: { cto: 1800, livrets: 2900, cryptos: 1060, voiture: 2000, montres: 50, cartesPokemon: 150, jeuxPokemon: 1000, autres: 1000 },
+    assetDetails: { immobilier: 0, cto: 1800, livrets: 2900, cryptos: 1060, voiture: 2000, montres: 50, cartesPokemon: 150, jeuxPokemon: 1000, autres: 1000 },
     liabilityDetails: { creditImmobilier: 0, creditConsommation: 0, cartesCredit: 0, autres: 0 },
   },
   {
     date: '2025-05-02', totalAssets: 10550, totalLiabilities: 3300,
-    assetDetails: { cto: 1900, livrets: 3100, cryptos: 1300, voiture: 2000, montres: 50, cartesPokemon: 200, jeuxPokemon: 1000, autres: 1000 },
+    assetDetails: { immobilier: 0, cto: 1900, livrets: 3100, cryptos: 1300, voiture: 2000, montres: 50, cartesPokemon: 200, jeuxPokemon: 1000, autres: 1000 },
     liabilityDetails: { creditImmobilier: 3300, creditConsommation: 0, cartesCredit: 0, autres: 0 },
   },
   {
     date: '2025-06-25', totalAssets: 13340, totalLiabilities: 1800,
-    assetDetails: { cto: 1000, livrets: 1700, cryptos: 390, voiture: 8000, montres: 50, cartesPokemon: 200, jeuxPokemon: 1000, autres: 1000 },
+    assetDetails: { immobilier: 0, cto: 1000, livrets: 1700, cryptos: 390, voiture: 8000, montres: 50, cartesPokemon: 200, jeuxPokemon: 1000, autres: 1000 },
     liabilityDetails: { creditImmobilier: 1800, creditConsommation: 0, cartesCredit: 0, autres: 0 },
   },
   {
     date: '2025-09-01', totalAssets: 12700, totalLiabilities: 800,
-    assetDetails: { cto: 1100, livrets: 600, cryptos: 700, voiture: 8000, montres: 50, cartesPokemon: 250, jeuxPokemon: 1000, autres: 1000 },
+    assetDetails: { immobilier: 0, cto: 1100, livrets: 600, cryptos: 700, voiture: 8000, montres: 50, cartesPokemon: 250, jeuxPokemon: 1000, autres: 1000 },
     liabilityDetails: { creditImmobilier: 800, creditConsommation: 0, cartesCredit: 0, autres: 0 },
   },
   {
     date: '2025-10-01', totalAssets: 13200, totalLiabilities: 800,
-    assetDetails: { cto: 1000, livrets: 1300, cryptos: 600, voiture: 8000, montres: 50, cartesPokemon: 250, jeuxPokemon: 1000, autres: 1000 },
+    assetDetails: { immobilier: 0, cto: 1000, livrets: 1300, cryptos: 600, voiture: 8000, montres: 50, cartesPokemon: 250, jeuxPokemon: 1000, autres: 1000 },
     liabilityDetails: { creditImmobilier: 800, creditConsommation: 0, cartesCredit: 0, autres: 0 },
   },
   {
     date: '2025-11-20', totalAssets: 12650, totalLiabilities: 0,
-    assetDetails: { cto: 1100, livrets: 600, cryptos: 0, voiture: 8000, montres: 530, cartesPokemon: 400, jeuxPokemon: 1020, autres: 1000 },
+    assetDetails: { immobilier: 0, cto: 1100, livrets: 600, cryptos: 0, voiture: 8000, montres: 530, cartesPokemon: 400, jeuxPokemon: 1020, autres: 1000 },
     liabilityDetails: { creditImmobilier: 0, creditConsommation: 0, cartesCredit: 0, autres: 0 },
   },
   {
     date: '2025-12-01', totalAssets: 15380, totalLiabilities: 0,
-    assetDetails: { cto: 650, livrets: 1000, cryptos: 220, voiture: 10000, montres: 530, cartesPokemon: 960, jeuxPokemon: 1020, autres: 1000 },
+    assetDetails: { immobilier: 0, cto: 650, livrets: 1000, cryptos: 220, voiture: 10000, montres: 530, cartesPokemon: 960, jeuxPokemon: 1020, autres: 1000 },
     liabilityDetails: { creditImmobilier: 0, creditConsommation: 0, cartesCredit: 0, autres: 0 },
   },
   {
     date: '2026-02-01', totalAssets: 16770, totalLiabilities: 0,
-    assetDetails: { cto: 600, livrets: 1800, cryptos: 520, voiture: 10000, montres: 530, cartesPokemon: 1300, jeuxPokemon: 1020, autres: 1000 },
+    assetDetails: { immobilier: 0, cto: 600, livrets: 1800, cryptos: 520, voiture: 10000, montres: 530, cartesPokemon: 1300, jeuxPokemon: 1020, autres: 1000 },
     liabilityDetails: { creditImmobilier: 0, creditConsommation: 0, cartesCredit: 0, autres: 0 },
   },
 ]

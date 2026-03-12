@@ -20,23 +20,27 @@ export default function StatsRow({ totalAssets, totalLiabilities, snapshots, isL
       label: 'Total Assets',
       value: totalAssets,
       icon: TrendingUp,
-      color: 'text-emerald-600 dark:text-emerald-400',
-      bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+      neonClass: 'neon-text-green',
+      glowColor: 'rgba(52,211,153,0.15)',
+      borderColor: 'border-emerald-500/10',
     },
     {
       label: 'Total Liabilities',
       value: totalLiabilities,
       icon: TrendingDown,
-      color: 'text-red-600 dark:text-red-400',
-      bg: 'bg-red-50 dark:bg-red-900/20',
+      neonClass: 'neon-text-pink',
+      glowColor: 'rgba(244,114,182,0.15)',
+      borderColor: 'border-pink-500/10',
     },
     {
       label: 'Monthly Change',
       value: netWorthChange ?? 0,
       icon: Activity,
-      color: netWorthChange === null ? 'text-slate-500' :
-             netWorthChange >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
-      bg: 'bg-slate-50 dark:bg-slate-800',
+      neonClass: netWorthChange === null ? 'text-white/30' :
+                 netWorthChange >= 0 ? 'neon-text-cyan' : 'neon-text-pink',
+      glowColor: netWorthChange === null ? 'transparent' :
+                 netWorthChange >= 0 ? 'rgba(34,211,238,0.15)' : 'rgba(244,114,182,0.15)',
+      borderColor: 'border-cyan-500/10',
       isChange: true,
       noData: netWorthChange === null,
     },
@@ -46,9 +50,9 @@ export default function StatsRow({ totalAssets, totalLiabilities, snapshots, isL
     return (
       <div className="grid grid-cols-3 gap-3">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-white dark:bg-[#0b1526] rounded-xl border border-slate-200 dark:border-slate-700/60 p-4 animate-pulse">
-            <div className="h-3 w-16 bg-slate-200 dark:bg-slate-700/60 rounded mb-3" />
-            <div className="h-6 w-24 bg-slate-200 dark:bg-slate-700/60 rounded" />
+          <div key={i} className="glass-card p-4 animate-pulse">
+            <div className="h-3 w-16 bg-white/10 rounded mb-3" />
+            <div className="h-6 w-24 bg-white/10 rounded" />
           </div>
         ))}
       </div>
@@ -57,16 +61,19 @@ export default function StatsRow({ totalAssets, totalLiabilities, snapshots, isL
 
   return (
     <div className="grid grid-cols-3 gap-3">
-      {stats.map(({ label, value, icon: Icon, color, bg, isChange, noData }) => (
-        <div key={label} className="bg-white dark:bg-[#0b1526] rounded-xl border border-slate-200 dark:border-slate-700/60 p-4">
+      {stats.map(({ label, value, icon: Icon, neonClass, glowColor, borderColor, isChange, noData }) => (
+        <div key={label} className={`glass-card p-4 ${borderColor}`}>
           <div className="flex items-center gap-2 mb-2">
-            <div className={`p-1.5 rounded-lg ${bg}`}>
-              <Icon className={`h-3.5 w-3.5 ${color}`} />
+            <div
+              className="p-1.5 rounded-lg"
+              style={{ background: glowColor }}
+            >
+              <Icon className={`h-3.5 w-3.5 ${neonClass}`} />
             </div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">{label}</span>
+            <span className="text-xs text-white/40 font-medium">{label}</span>
           </div>
-          <p className={`text-lg font-bold ${color}`}>
-            {noData ? '—' : isChange && value > 0 ? `+${formatCurrency(value)}` : formatCurrency(value)}
+          <p className={`text-lg font-bold font-mono ${neonClass}`}>
+            {noData ? '--' : isChange && value > 0 ? `+${formatCurrency(value)}` : formatCurrency(value)}
           </p>
         </div>
       ))}
