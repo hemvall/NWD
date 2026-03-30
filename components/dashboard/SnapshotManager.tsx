@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, ChevronDown } from 'lucide-react'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import SnapshotDialog from './SnapshotDialog'
 import type { NetWorthSnapshot, AssetDetails, LiabilityDetails, Liability } from '@/lib/types'
@@ -120,7 +121,15 @@ export default function SnapshotManager({ snapshots, liabilities, isLoading, onS
                   <button type="button" className="flex-1 min-w-0 text-left" onClick={() => hasDetails && toggleExpand(snap.id)}>
                     <p className="text-sm font-medium text-white/70 flex items-center gap-1.5">
                       {label}
-                      {hasDetails && <span className="text-[10px] text-white/20">{isExpanded ? '▲' : '▼'}</span>}
+                      {hasDetails && (
+                        <motion.span
+                          animate={{ rotate: isExpanded ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="inline-flex"
+                        >
+                          <ChevronDown className="h-3 w-3 text-white/20" />
+                        </motion.span>
+                      )}
                     </p>
                     <p className="text-[10px] text-white/25 mt-0.5 font-mono">
                       {formatCurrency(snap.total_assets)} A &middot; {formatCurrency(snap.total_liabilities)} L
@@ -139,60 +148,97 @@ export default function SnapshotManager({ snapshots, liabilities, isLoading, onS
                   </div>
                 </div>
 
-                {isExpanded && (
-                  <div className="mt-3 glass-inner rounded-xl p-4">
-                    {/* Donut chart + legend */}
-                    {donutData.length > 0 && (
-                      <div className="flex items-center gap-4">
-                        <div className="relative shrink-0" style={{ width: 140, height: 140 }}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie data={donutData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value" strokeWidth={0}>
-                                {donutData.map((entry, index) => (
-                                  <Cell key={index} fill={NEON_COLORS[entry.name] ?? '#6b7280'} style={{ filter: `drop-shadow(0 0 4px ${NEON_COLORS[entry.name] ?? '#6b7280'}40)` }} />
-                                ))}
-                              </Pie>
-                              <Tooltip content={<MiniDonutTooltip />} />
-                            </PieChart>
-                          </ResponsiveContainer>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-xs font-bold font-mono neon-text-cyan">{formatCurrency(totalAssets, true)}</span>
-                            <span className="text-[8px] text-white/25">patrimoine</span>
-                          </div>
-                        </div>
-
-                        <div className="flex-1 grid grid-cols-2 gap-x-3 gap-y-1.5">
-                          {donutData.map(({ name, value }) => {
-                            const pct = totalAssets > 0 ? ((value / totalAssets) * 100).toFixed(1) : '0'
-                            return (
-                              <div key={name} className="flex items-center gap-1.5 text-[10px]">
-                                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: NEON_COLORS[name], boxShadow: `0 0 4px ${NEON_COLORS[name]}60` }} />
-                                <span className="text-white/40 truncate">{name}</span>
-                                <span className="font-semibold font-mono text-white/60 ml-auto">{formatCurrency(value, true)}</span>
-                                <span className="text-white/20 font-mono w-8 text-right">{pct}%</span>
+                <AnimatePresence initial={false}>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-3 glass-inner rounded-xl p-4">
+                        {/* Donut chart + legend */}
+                        {donutData.length > 0 && (
+                          <div className="flex flex-col sm:flex-row items-center gap-4">
+                            <motion.div
+                              initial={{ scale: 0.8, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ duration: 0.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                              className="relative shrink-0"
+                              style={{ width: 150, height: 150 }}
+                            >
+                              <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                  <Pie
+                                    data={donutData}
+                                    cx="50%" cy="50%"
+                                    innerRadius={42} outerRadius={62}
+                                    paddingAngle={2}
+                                    dataKey="value"
+                                    strokeWidth={0}
+                                    animationBegin={0}
+                                    animationDuration={600}
+                                    animationEasing="ease-out"
+                                  >
+                                    {donutData.map((entry, index) => (
+                                      <Cell key={index} fill={NEON_COLORS[entry.name] ?? '#6b7280'} style={{ filter: `drop-shadow(0 0 6px ${NEON_COLORS[entry.name] ?? '#6b7280'}50)` }} />
+                                    ))}
+                                  </Pie>
+                                  <Tooltip content={<MiniDonutTooltip />} />
+                                </PieChart>
+                              </ResponsiveContainer>
+                              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span className="text-xs font-bold font-mono neon-text-cyan">{formatCurrency(totalAssets, true)}</span>
+                                <span className="text-[8px] text-white/25">patrimoine</span>
                               </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
+                            </motion.div>
 
-                    {/* Liabilities row */}
-                    {snap.liability_details && (snap.liability_details.creditImmobilier > 0 || snap.liability_details.creditConsommation > 0 || snap.liability_details.cartesCredit > 0 || snap.liability_details.autres > 0) && (
-                      <div className={donutData.length > 0 ? 'mt-3 pt-3 border-t border-white/[0.06]' : ''}>
-                        <p className="text-[10px] font-semibold text-white/20 uppercase tracking-wide mb-1.5">Passifs</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {LIABILITY_LABELS.filter(({ key }) => (snap.liability_details![key] ?? 0) > 0).map(({ key, label }) => (
-                            <span key={key} className="inline-flex items-center gap-1 text-[10px] bg-red-500/10 text-red-300 rounded-md px-2 py-0.5 font-mono">
-                              <span className="text-red-400/50">{label}</span>
-                              {formatCurrency(snap.liability_details![key]!)}
-                            </span>
-                          ))}
-                        </div>
+                            <div className="flex-1 w-full grid grid-cols-2 gap-x-4 gap-y-2">
+                              {donutData.map(({ name, value }, i) => {
+                                const pct = totalAssets > 0 ? ((value / totalAssets) * 100).toFixed(1) : '0'
+                                return (
+                                  <motion.div
+                                    key={name}
+                                    initial={{ opacity: 0, x: -8 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.3, delay: 0.15 + i * 0.04 }}
+                                    className="flex items-center gap-2 text-[11px]"
+                                  >
+                                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: NEON_COLORS[name], boxShadow: `0 0 6px ${NEON_COLORS[name]}60` }} />
+                                    <span className="text-white/45 truncate">{name}</span>
+                                    <span className="font-semibold font-mono text-white/65 ml-auto">{formatCurrency(value, true)}</span>
+                                    <span className="text-white/25 font-mono w-10 text-right">{pct}%</span>
+                                  </motion.div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Liabilities row */}
+                        {snap.liability_details && (snap.liability_details.creditImmobilier > 0 || snap.liability_details.creditConsommation > 0 || snap.liability_details.cartesCredit > 0 || snap.liability_details.autres > 0) && (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className={donutData.length > 0 ? 'mt-3 pt-3 border-t border-white/[0.06]' : ''}
+                          >
+                            <p className="text-[10px] font-semibold text-white/20 uppercase tracking-wide mb-1.5">Passifs</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {LIABILITY_LABELS.filter(({ key }) => (snap.liability_details![key] ?? 0) > 0).map(({ key, label }) => (
+                                <span key={key} className="inline-flex items-center gap-1 text-[10px] bg-red-500/10 text-red-300 rounded-md px-2 py-0.5 font-mono">
+                                  <span className="text-red-400/50">{label}</span>
+                                  {formatCurrency(snap.liability_details![key]!)}
+                                </span>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )
           })}

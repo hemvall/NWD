@@ -233,6 +233,11 @@
   text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
 }
 
+/* Safe area for mobile nav */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
