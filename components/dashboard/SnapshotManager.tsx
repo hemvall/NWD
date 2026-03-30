@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { Button } from '@/components/ui/button'
 import SnapshotDialog from './SnapshotDialog'
 import type { NetWorthSnapshot, AssetDetails, LiabilityDetails, Liability } from '@/lib/types'
@@ -16,17 +17,47 @@ interface Props {
   onDelete: (id: string) => Promise<void>
 }
 
-const ASSET_LABELS: { key: keyof AssetDetails; label: string }[] = [
-  { key: 'cto', label: 'CTO' }, { key: 'livrets', label: 'Livrets' },
-  { key: 'cryptos', label: 'Cryptos' }, { key: 'voiture', label: 'Voiture' },
-  { key: 'montres', label: 'Montres' }, { key: 'cartesPokemon', label: 'Pokemon cartes' },
-  { key: 'jeuxPokemon', label: 'Pokemon jeux' }, { key: 'autres', label: 'Autres' },
-]
+const NEON_COLORS: Record<string, string> = {
+  Crypto: '#a78bfa',
+  Stocks: '#22d3ee',
+  Livrets: '#34d399',
+  Montres: '#fbbf24',
+  Voiture: '#fb923c',
+  Collection: '#f472b6',
+  Immobilier: '#818cf8',
+  Autres: '#6b7280',
+}
 
 const LIABILITY_LABELS: { key: keyof LiabilityDetails; label: string }[] = [
   { key: 'creditImmobilier', label: 'Credit immo' }, { key: 'creditConsommation', label: 'Credit conso' },
   { key: 'cartesCredit', label: 'Cartes credit' }, { key: 'autres', label: 'Autres passifs' },
 ]
+
+function buildDonutData(details: AssetDetails) {
+  const grouped: { name: string; value: number }[] = [
+    { name: 'Crypto', value: details.cryptos ?? 0 },
+    { name: 'Stocks', value: details.cto ?? 0 },
+    { name: 'Livrets', value: details.livrets ?? 0 },
+    { name: 'Montres', value: details.montres ?? 0 },
+    { name: 'Voiture', value: details.voiture ?? 0 },
+    { name: 'Collection', value: (details.cartesPokemon ?? 0) + (details.jeuxPokemon ?? 0) },
+    { name: 'Immobilier', value: details.immobilier ?? 0 },
+    { name: 'Autres', value: details.autres ?? 0 },
+  ]
+  return grouped.filter(d => d.value > 0).sort((a, b) => b.value - a.value)
+}
+
+function MiniDonutTooltip({ active, payload }: { active?: boolean; payload?: { name: string; value: number; payload: { percent: number } }[] }) {
+  if (!active || !payload?.length) return null
+  const { name, value, payload: { percent } } = payload[0]
+  return (
+    <div className="glass-card px-2.5 py-2 shadow-xl text-xs !bg-[#0d1b30]/95 !border-white/10">
+      <p className="text-white/50 font-medium">{name}</p>
+      <p className="font-bold font-mono neon-text-cyan">{formatCurrency(value)}</p>
+      <p className="text-white/30">{(percent * 100).toFixed(1)}%</p>
+    </div>
+  )
+}
 
 export default function SnapshotManager({ snapshots, liabilities, isLoading, onSave, onDelete }: Props) {
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -80,6 +111,8 @@ export default function SnapshotManager({ snapshots, liabilities, isLoading, onS
             const isDeleting = deletingId === snap.id
             const isExpanded = expandedId === snap.id
             const hasDetails = !!snap.asset_details || !!snap.liability_details
+            const donutData = snap.asset_details ? buildDonutData(snap.asset_details) : []
+            const totalAssets = snap.total_assets
 
             return (
               <div key={snap.id} className="py-2.5 first:pt-0 last:pb-0">
@@ -107,23 +140,47 @@ export default function SnapshotManager({ snapshots, liabilities, isLoading, onS
                 </div>
 
                 {isExpanded && (
-                  <div className="mt-2 pl-0 space-y-2">
-                    {snap.asset_details && (
-                      <div>
-                        <p className="text-[10px] font-semibold text-white/20 uppercase tracking-wide mb-1">Assets</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {ASSET_LABELS.filter(({ key }) => (snap.asset_details![key] ?? 0) > 0).map(({ key, label }) => (
-                            <span key={key} className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-300 rounded-md px-2 py-0.5 font-mono">
-                              <span className="text-emerald-500/50">{label}</span>
-                              {formatCurrency(snap.asset_details![key]!)}
-                            </span>
-                          ))}
+                  <div className="mt-3 glass-inner rounded-xl p-4">
+                    {/* Donut chart + legend */}
+                    {donutData.length > 0 && (
+                      <div className="flex items-center gap-4">
+                        <div className="relative shrink-0" style={{ width: 140, height: 140 }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie data={donutData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} paddingAngle={2} dataKey="value" strokeWidth={0}>
+                                {donutData.map((entry, index) => (
+                                  <Cell key={index} fill={NEON_COLORS[entry.name] ?? '#6b7280'} style={{ filter: `drop-shadow(0 0 4px ${NEON_COLORS[entry.name] ?? '#6b7280'}40)` }} />
+                                ))}
+                              </Pie>
+                              <Tooltip content={<MiniDonutTooltip />} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span className="text-xs font-bold font-mono neon-text-cyan">{formatCurrency(totalAssets, true)}</span>
+                            <span className="text-[8px] text-white/25">patrimoine</span>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 grid grid-cols-2 gap-x-3 gap-y-1.5">
+                          {donutData.map(({ name, value }) => {
+                            const pct = totalAssets > 0 ? ((value / totalAssets) * 100).toFixed(1) : '0'
+                            return (
+                              <div key={name} className="flex items-center gap-1.5 text-[10px]">
+                                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: NEON_COLORS[name], boxShadow: `0 0 4px ${NEON_COLORS[name]}60` }} />
+                                <span className="text-white/40 truncate">{name}</span>
+                                <span className="font-semibold font-mono text-white/60 ml-auto">{formatCurrency(value, true)}</span>
+                                <span className="text-white/20 font-mono w-8 text-right">{pct}%</span>
+                              </div>
+                            )
+                          })}
                         </div>
                       </div>
                     )}
+
+                    {/* Liabilities row */}
                     {snap.liability_details && (snap.liability_details.creditImmobilier > 0 || snap.liability_details.creditConsommation > 0 || snap.liability_details.cartesCredit > 0 || snap.liability_details.autres > 0) && (
-                      <div>
-                        <p className="text-[10px] font-semibold text-white/20 uppercase tracking-wide mb-1">Liabilities</p>
+                      <div className={donutData.length > 0 ? 'mt-3 pt-3 border-t border-white/[0.06]' : ''}>
+                        <p className="text-[10px] font-semibold text-white/20 uppercase tracking-wide mb-1.5">Passifs</p>
                         <div className="flex flex-wrap gap-1.5">
                           {LIABILITY_LABELS.filter(({ key }) => (snap.liability_details![key] ?? 0) > 0).map(({ key, label }) => (
                             <span key={key} className="inline-flex items-center gap-1 text-[10px] bg-red-500/10 text-red-300 rounded-md px-2 py-0.5 font-mono">

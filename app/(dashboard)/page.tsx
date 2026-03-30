@@ -59,8 +59,7 @@ export default function DashboardPage() {
         <MonteCarloSimulator
           latestSnapshot={latestSnapshot}
           totalLiabilities={heroTotalLiabilities}
-          goal={goal}
-          isLoading={isLoading || snapshotsLoading || goalLoading}
+          isLoading={isLoading || snapshotsLoading}
         />
         <SnapshotManager
           snapshots={snapshots}

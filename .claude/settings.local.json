@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:v0-simple-net-worth-dashboard.vercel.app)"
+      "WebFetch(domain:v0-simple-net-worth-dashboard.vercel.app)",
+      "Bash(grep -E \"\\(tsx|ts|json\\)$\")",
+      "Bash(xargs grep:*)",
+      "Bash(grep -E '\\\\.tsx$')",
+      "Bash(wc -l ./components/dashboard/*.tsx)",
+      "Bash(npx next:*)"
     ]
   }
 }
