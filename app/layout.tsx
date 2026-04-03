@@ -18,6 +18,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+          <link rel="apple-touch-icon" href="%PUBLIC_URL%/apple-touch-icon.png"></link>
+          <meta name="apple-mobile-web-app-title" content="NWD"></meta>
+      </head>
+      
       <body className={geist.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
