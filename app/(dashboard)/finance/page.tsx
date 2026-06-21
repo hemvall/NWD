@@ -14,6 +14,8 @@ import GoalTracker from '@/components/dashboard/GoalTracker'
 import RecentActivity from '@/components/dashboard/RecentActivity'
 import ProjectionSimulator from '@/components/dashboard/ProjectionSimulator'
 import KPIIndicators from '@/components/dashboard/KPIIndicators'
+import QuestLog from '@/components/dashboard/QuestLog'
+import MilestoneTracker from '@/components/dashboard/MilestoneTracker'
 import SavingsRate from '@/components/dashboard/SavingsRate'
 import ComparisonView from '@/components/dashboard/ComparisonView'
 import MonteCarloSimulator from '@/components/dashboard/MonteCarloSimulator'
@@ -34,9 +36,41 @@ type TabId = (typeof TABS)[number]['id']
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-4">
-      <h2 className="text-sm font-semibold text-white/70">{title}</h2>
-      {subtitle && <p className="text-[10px] text-white/30 mt-0.5">{subtitle}</p>}
+      <div className="flex items-center gap-2.5">
+        <span className="text-cyan-400 text-[10px]" style={{ textShadow: '0 0 8px rgba(34,211,238,0.7)' }}>◆</span>
+        <h2 className="text-xs font-mono font-semibold uppercase tracking-[0.22em] text-cyan-200/90">{title}</h2>
+        <div className="flex-1 h-px system-divider" />
+      </div>
+      {subtitle && <p className="text-[10px] font-mono text-cyan-100/30 mt-1.5 ml-[22px] tracking-wide">{subtitle}</p>}
     </div>
+  )
+}
+
+function SystemBanner() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="glass-card relative overflow-hidden mb-6 px-5 py-4"
+    >
+      {/* scanning highlight */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-cyan-400/15 to-transparent animate-[system-scan_5s_linear_infinite]" />
+      {/* left accent bar */}
+      <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-cyan-400" style={{ boxShadow: '0 0 14px rgba(34,211,238,0.9)' }} />
+      <div className="relative flex items-center gap-3">
+        <span className="text-cyan-300 text-xl leading-none animate-[system-flicker_4s_linear_infinite]">⟦ ! ⟧</span>
+        <div>
+          <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-cyan-400/70">
+            Notification du Système
+          </p>
+          <p className="text-sm font-mono text-white/90 mt-1">
+            Bienvenue, <span className="neon-text-cyan">Joueur</span>. Votre statut financier a été synchronisé.
+            <span className="ml-1 inline-block w-2 text-cyan-300 animate-[system-blink_1.2s_step-end_infinite]">_</span>
+          </p>
+        </div>
+      </div>
+    </motion.div>
   )
 }
 
@@ -73,30 +107,35 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Header title="Dashboard" />
-      <main className="flex-1 px-4 md:px-6 py-5 max-w-5xl mx-auto w-full">
-        {/* Tabs */}
-        <div className="flex gap-1 mb-6 overflow-x-auto pb-1 -mx-1 px-1">
+      <Header title="⟦ FINANCE ⟧" />
+      <main className="system-ui flex-1 px-4 md:px-6 py-5 max-w-5xl mx-auto w-full">
+        <SystemBanner />
+
+        {/* System menu tabs */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-1 px-1">
           {TABS.map(({ id, label, icon: Icon }) => (
-            <button
+            <motion.button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`relative flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-xl transition-all whitespace-nowrap ${
-                activeTab === id
-                  ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
-                  : 'text-white/35 hover:text-white/60 border border-transparent hover:bg-white/[0.03]'
-              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+              className={`system-tab relative flex items-center gap-2 px-4 py-2 text-[11px] font-mono uppercase tracking-wider transition-colors whitespace-nowrap border ${activeTab === id
+                  ? 'text-cyan-200 border-cyan-400/50 bg-cyan-500/10'
+                  : 'text-cyan-100/30 border-cyan-400/10 hover:text-cyan-100/60 hover:border-cyan-400/30'
+                }`}
+              style={activeTab === id ? { boxShadow: '0 0 16px rgba(34,211,238,0.22)' } : undefined}
             >
               <Icon className="h-3.5 w-3.5" />
               {label}
               {activeTab === id && (
                 <motion.div
                   layoutId="tab-glow"
-                  className="absolute inset-0 rounded-xl bg-cyan-500/5"
+                  className="absolute inset-0 bg-cyan-500/5"
                   transition={{ type: 'spring', duration: 0.5, bounce: 0.15 }}
                 />
               )}
-            </button>
+            </motion.button>
           ))}
         </div>
 
@@ -123,6 +162,14 @@ export default function DashboardPage() {
                   <GoalTracker netWorth={netWorth} goal={goal} isLoading={goalLoading} />
                 </motion.div>
                 <motion.div variants={item}>
+                  <SectionHeader title="Paliers financiers" subtitle="Vos prochains seuils de patrimoine et le temps estime pour les atteindre" />
+                  <MilestoneTracker netWorth={netWorth} snapshots={snapshots} isLoading={isLoading || snapshotsLoading} />
+                </motion.div>
+                <motion.div variants={item}>
+                  <SectionHeader title="Journal de quetes" subtitle="Vos exploits financiers debloques par le Systeme" />
+                  <QuestLog netWorth={netWorth} snapshots={snapshots} goal={goal} isLoading={snapshotsLoading || goalLoading} />
+                </motion.div>
+                <motion.div variants={item}>
                   <SectionHeader title="Evolution du patrimoine" subtitle="Courbe de votre patrimoine net au fil du temps" />
                   <NetWorthChart snapshots={snapshots} isLoading={snapshotsLoading} />
                 </motion.div>
@@ -132,6 +179,16 @@ export default function DashboardPage() {
 
           {activeTab === 'history' && (
             <motion.div key="history" {...fadeSlide}>
+              <motion.div variants={item}>
+                <SectionHeader title="Snapshots" subtitle="Historique detaille de chaque mois avec repartition du patrimoine" />
+                <SnapshotManager
+                  snapshots={snapshots}
+                  liabilities={liabilities}
+                  isLoading={snapshotsLoading}
+                  onSave={upsertSnapshot}
+                  onDelete={deleteSnapshot}
+                />
+              </motion.div>
               <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-6">
                 <motion.div variants={item}>
                   <SectionHeader title="Comparaison" subtitle="Comparez votre patrimoine mois par mois ou annee par annee" />
@@ -140,16 +197,6 @@ export default function DashboardPage() {
                 <motion.div variants={item}>
                   <SectionHeader title="Epargne mensuelle" subtitle="Variation nette de patrimoine chaque mois" />
                   <SavingsRate snapshots={snapshots} isLoading={snapshotsLoading} />
-                </motion.div>
-                <motion.div variants={item}>
-                  <SectionHeader title="Snapshots" subtitle="Historique detaille de chaque mois avec repartition du patrimoine" />
-                  <SnapshotManager
-                    snapshots={snapshots}
-                    liabilities={liabilities}
-                    isLoading={snapshotsLoading}
-                    onSave={upsertSnapshot}
-                    onDelete={deleteSnapshot}
-                  />
                 </motion.div>
               </motion.div>
             </motion.div>

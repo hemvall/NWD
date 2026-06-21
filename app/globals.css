@@ -233,6 +233,128 @@
   text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
 }
 
+/* ── Solo Leveling "System" UI (dashboard scope) ── */
+
+@keyframes system-scan {
+  0% { transform: translateY(-120%); }
+  100% { transform: translateY(2600%); }
+}
+
+@keyframes system-flicker {
+  0%, 100% { opacity: 1; }
+  91% { opacity: 1; }
+  93% { opacity: 0.45; }
+  95% { opacity: 1; }
+  97% { opacity: 0.7; }
+}
+
+@keyframes system-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.system-ui {
+  position: relative;
+}
+
+/* Holographic grid backdrop, faded toward edges */
+.system-ui::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(56, 189, 248, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.045) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(ellipse 85% 65% at 50% 0%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse 85% 65% at 50% 0%, #000 25%, transparent 78%);
+}
+
+.system-ui > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Re-skin every panel on the page as a System window */
+.system-ui .glass-card {
+  background: linear-gradient(155deg, rgba(9, 19, 44, 0.88), rgba(4, 10, 26, 0.82));
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 3px;
+  box-shadow:
+    0 0 24px rgba(34, 211, 238, 0.07),
+    inset 0 0 40px rgba(34, 211, 238, 0.04),
+    inset 0 1px 0 rgba(125, 211, 252, 0.1);
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  will-change: transform;
+}
+
+.system-ui .glass-card:hover {
+  border-color: rgba(56, 189, 248, 0.42);
+  box-shadow:
+    0 0 34px rgba(34, 211, 238, 0.13),
+    inset 0 0 52px rgba(34, 211, 238, 0.06),
+    inset 0 1px 0 rgba(125, 211, 252, 0.14);
+}
+
+@media (hover: hover) {
+  .system-ui .glass-card:hover {
+    transform: translateY(-3px);
+  }
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  .system-ui *,
+  .system-ui *::before,
+  .system-ui *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .system-ui .glass-card:hover {
+    transform: none;
+  }
+}
+
+/* L-shaped corner brackets drawn with corner-pinned gradients */
+.system-ui .glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  background:
+    linear-gradient(#38bdf8, #38bdf8) top left,
+    linear-gradient(#38bdf8, #38bdf8) top left,
+    linear-gradient(#38bdf8, #38bdf8) top right,
+    linear-gradient(#38bdf8, #38bdf8) top right,
+    linear-gradient(#38bdf8, #38bdf8) bottom left,
+    linear-gradient(#38bdf8, #38bdf8) bottom left,
+    linear-gradient(#38bdf8, #38bdf8) bottom right,
+    linear-gradient(#38bdf8, #38bdf8) bottom right;
+  background-repeat: no-repeat;
+  background-size:
+    15px 1.5px, 1.5px 15px,
+    15px 1.5px, 1.5px 15px,
+    15px 1.5px, 1.5px 15px,
+    15px 1.5px, 1.5px 15px;
+  opacity: 0.55;
+  filter: drop-shadow(0 0 3px rgba(56, 189, 248, 0.7));
+}
+
+/* Angular system menu tab (clipped corners) */
+.system-tab {
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+}
+
+.system-divider {
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.45), transparent);
+}
+
 /* Safe area for mobile nav */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0);

@@ -64,20 +64,24 @@ interface KPICardProps {
   icon: React.ComponentType<{ className?: string }>
   neonClass: string
   glowColor: string
+  stat: string
 }
 
-function KPICard({ label, value, subtitle, icon: Icon, neonClass, glowColor }: KPICardProps) {
+function KPICard({ label, value, subtitle, icon: Icon, neonClass, glowColor, stat }: KPICardProps) {
   return (
-    <div className="glass-card p-4">
+    <div className="glass-card p-4 relative">
+      <span className="absolute top-2.5 right-2.5 text-[8px] font-mono font-bold tracking-[0.2em] text-cyan-200/40 border border-cyan-400/20 px-1.5 py-px">
+        {stat}
+      </span>
       <div className="flex items-center gap-2 mb-2">
         <div className="p-1.5 rounded-lg" style={{ background: glowColor }}>
           <Icon className={`h-3.5 w-3.5 ${neonClass}`} />
         </div>
-        <span className="text-xs text-white/40 font-medium">{label}</span>
+        <span className="text-[11px] text-white/40 font-mono uppercase tracking-wide">{label}</span>
       </div>
       <p className={`text-lg font-bold font-mono ${neonClass}`}>{value}</p>
       {subtitle && (
-        <p className="text-[10px] text-white/25 mt-0.5">{subtitle}</p>
+        <p className="text-[10px] text-white/25 mt-0.5 font-mono">{subtitle}</p>
       )}
     </div>
   )
@@ -123,6 +127,7 @@ export default function KPIIndicators({ snapshots, goal, isLoading }: Props) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <KPICard
+        stat="STR"
         label="Croissance annualisee"
         value={annualizedGrowth !== null ? formatPercent(annualizedGrowth) : '--'}
         subtitle={annualizedGrowth !== null ? 'Taux compose (CAGR)' : 'Donnees insuffisantes'}
@@ -131,6 +136,7 @@ export default function KPIIndicators({ snapshots, goal, isLoading }: Props) {
         glowColor={annualizedGrowth !== null && annualizedGrowth >= 0 ? 'rgba(52,211,153,0.15)' : 'rgba(244,114,182,0.15)'}
       />
       <KPICard
+        stat="PER"
         label="Temps vers objectif"
         value={goal ? formatMonths(timeToGoal) : '--'}
         subtitle={goal ? `Objectif : ${formatCurrency(goal.target_net_worth, true)}` : 'Aucun objectif'}
@@ -139,6 +145,7 @@ export default function KPIIndicators({ snapshots, goal, isLoading }: Props) {
         glowColor="rgba(34,211,238,0.15)"
       />
       <KPICard
+        stat="VIT"
         label="Volatilite"
         value={volatility !== null ? `${volatility.toFixed(1)}%` : '--'}
         subtitle={volatility !== null ? 'Annualisee (ecart-type)' : 'Donnees insuffisantes'}
@@ -147,6 +154,7 @@ export default function KPIIndicators({ snapshots, goal, isLoading }: Props) {
         glowColor="rgba(167,139,250,0.15)"
       />
       <KPICard
+        stat="AGI"
         label="Epargne moy./mois"
         value={avgMonthlySavings !== null ? formatCurrency(avgMonthlySavings) : '--'}
         subtitle={avgMonthlySavings !== null ? `~ ${formatCurrency(avgMonthlySavings * 12, true)}/an` : 'Donnees insuffisantes'}

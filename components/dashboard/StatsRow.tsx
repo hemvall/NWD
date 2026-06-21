@@ -2,6 +2,7 @@
 
 import { formatCurrency } from '@/lib/utils'
 import { TrendingUp, TrendingDown, Activity } from 'lucide-react'
+import AnimatedNumber from '@/components/ui/AnimatedNumber'
 import type { NetWorthSnapshot } from '@/lib/types'
 
 interface Props {
@@ -72,9 +73,15 @@ export default function StatsRow({ totalAssets, totalLiabilities, snapshots, isL
             </div>
             <span className="text-xs text-white/40 font-medium">{label}</span>
           </div>
-          <p className={`text-lg font-bold font-mono ${neonClass}`}>
-            {noData ? '--' : isChange && value > 0 ? `+${formatCurrency(value)}` : formatCurrency(value)}
-          </p>
+          {noData ? (
+            <p className={`text-lg font-bold font-mono ${neonClass}`}>--</p>
+          ) : (
+            <AnimatedNumber
+              value={value}
+              format={n => (isChange && n > 0 ? `+${formatCurrency(n)}` : formatCurrency(n))}
+              className={`block text-lg font-bold font-mono ${neonClass}`}
+            />
+          )}
         </div>
       ))}
     </div>

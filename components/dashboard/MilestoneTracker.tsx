@@ -11,7 +11,7 @@ interface Props {
   isLoading: boolean
 }
 
-const MILESTONES = [25_000, 35_000, 50_000, 75_000, 100_000]
+const MILESTONES = [10_000, 35_000, 50_000, 75_000, 100_000, 150_000, 250_000]
 
 function estimateTimeToMilestone(
   currentNW: number,

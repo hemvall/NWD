@@ -2,13 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, TrendingUp, TrendingDown, Settings } from 'lucide-react'
+import { LayoutGrid, LayoutDashboard, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/assets', label: 'Assets', icon: TrendingUp },
-  { href: '/liabilities', label: 'Debts', icon: TrendingDown },
+  { href: '/', label: 'Système', icon: LayoutGrid },
+  { href: '/finance', label: 'Finance', icon: LayoutDashboard },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
