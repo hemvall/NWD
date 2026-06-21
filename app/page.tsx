@@ -13,6 +13,7 @@ import {
   ChevronRight,
   type LucideIcon,
 } from 'lucide-react'
+import GlobalRankPanel from '@/components/system/GlobalRankPanel'
 
 interface SystemModule {
   id: string
@@ -37,10 +38,11 @@ const MODULES: SystemModule[] = [
   {
     id: 'sport',
     label: 'Sport',
-    desc: 'Entraînements, performances & santé physique',
+    desc: 'Salle de sport, performances & diète',
     icon: Dumbbell,
+    href: '/sport',
     color: '#34d399',
-    available: false,
+    available: true,
   },
   {
     id: 'voyages',
@@ -195,6 +197,9 @@ export default function SystemHubPage() {
             Bienvenue, <span className="neon-text-cyan">Joueur</span>. Sélectionnez un module à explorer.
           </p>
         </motion.div>
+
+        {/* Global rank — combines XP/levels from every section */}
+        <GlobalRankPanel />
 
         {/* Module grid */}
         <motion.div

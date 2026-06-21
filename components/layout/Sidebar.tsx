@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutGrid,
   LayoutDashboard,
+  Dumbbell,
   Settings,
   LogOut,
 } from 'lucide-react'
@@ -13,16 +14,31 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
-const navItems = [
-  { href: '/', label: 'Système', icon: LayoutGrid },
-  { href: '/finance', label: 'Finance', icon: LayoutDashboard },
-  { href: '/settings', label: 'Settings', icon: Settings },
-]
+const NAV = {
+  sport: {
+    title: 'Gym',
+    items: [
+      { href: '/', label: 'Système', icon: LayoutGrid },
+      { href: '/sport', label: 'Gym', icon: Dumbbell },
+      { href: '/sport/settings', label: 'Réglages', icon: Settings },
+    ],
+  },
+  finance: {
+    title: 'Finance',
+    items: [
+      { href: '/', label: 'Système', icon: LayoutGrid },
+      { href: '/finance', label: 'Finance', icon: LayoutDashboard },
+      { href: '/settings', label: 'Settings', icon: Settings },
+    ],
+  },
+}
 
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+
+  const section = pathname.startsWith('/sport') ? NAV.sport : NAV.finance
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -39,12 +55,12 @@ export default function Sidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         </div>
-        <span className="font-semibold text-slate-900 dark:text-white text-sm">Net Worth</span>
+        <span className="font-semibold text-slate-900 dark:text-white text-sm">{section.title}</span>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {section.items.map(({ href, label, icon: Icon }) => {
           const active = pathname === href
           return (
             <Link
