@@ -1,145 +1,245 @@
 'use client'
 
-import { useCallback, useSyncExternalStore } from 'react'
-import type { SportProfile, BodyEntry, LiftEntry } from '@/lib/sport'
-
-const PROFILE_KEY = 'nwd_sport_profile'
-const BODY_KEY = 'nwd_sport_body'
-const LIFT_KEY = 'nwd_sport_lifts'
+import useSWR from 'swr'
+import { createClient } from '@/lib/supabase/client'
+import type { SportProfile, BodyEntry, LiftEntry, LiftKey, WorkoutEntry, WorkoutType } from '@/lib/sport'
 
 const EMPTY_BODY: BodyEntry[] = []
 const EMPTY_LIFTS: LiftEntry[] = []
+const EMPTY_WORKOUTS: WorkoutEntry[] = []
 
-function newId(): string {
-  return typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
-    : Math.random().toString(36).slice(2)
+// ── Row ⇄ domain mappers ──────────────────────────────────────────────────
+
+type ProfileRow = {
+  name: string
+  gender: SportProfile['gender']
+  age: number
+  height_cm: number
+  weight_kg: number
+  experience: SportProfile['experience']
+  activity: SportProfile['activity']
+  phase: SportProfile['phase']
+  objective: SportProfile['objective']
+  target_weight_kg: number | null
+  lift_targets: Partial<Record<LiftKey, number | null>> | null
+  calorie_override: number | null
+  created_at: string
 }
 
-// ── Minimal localStorage-backed external store (SSR-safe) ──
-
-const listeners = new Map<string, Set<() => void>>()
-const cache = new Map<string, { raw: string | null; value: unknown }>()
-const SERVER = Symbol('server-snapshot')
-
-function emit(key: string) {
-  listeners.get(key)?.forEach(l => l())
-}
-
-function subscribe(key: string, cb: () => void): () => void {
-  let set = listeners.get(key)
-  if (!set) {
-    set = new Set()
-    listeners.set(key, set)
+function rowToProfile(r: ProfileRow): SportProfile {
+  return {
+    name: r.name,
+    gender: r.gender,
+    age: r.age,
+    heightCm: r.height_cm,
+    weightKg: r.weight_kg,
+    experience: r.experience,
+    activity: r.activity,
+    phase: r.phase,
+    objective: r.objective,
+    targetWeightKg: r.target_weight_kg,
+    liftTargets: r.lift_targets ?? undefined,
+    calorieOverride: r.calorie_override,
+    createdAt: r.created_at,
   }
-  set.add(cb)
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === key) {
-      cache.delete(key)
-      cb()
-    }
-  }
-  window.addEventListener('storage', onStorage)
-  return () => {
-    set!.delete(cb)
-    window.removeEventListener('storage', onStorage)
+}
+
+function profileToRow(p: SportProfile) {
+  return {
+    name: p.name,
+    gender: p.gender,
+    age: p.age,
+    height_cm: p.heightCm,
+    weight_kg: p.weightKg,
+    experience: p.experience,
+    activity: p.activity,
+    phase: p.phase,
+    objective: p.objective,
+    target_weight_kg: p.targetWeightKg ?? null,
+    lift_targets: p.liftTargets ?? null,
+    calorie_override: p.calorieOverride ?? null,
   }
 }
 
-/** Returns a cached (stable) parsed value so useSyncExternalStore doesn't loop. */
-function readSnapshot<T>(key: string, fallback: T): T {
-  const raw = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null
-  const cached = cache.get(key)
-  if (cached && cached.raw === raw) return cached.value as T
-  let value: T
-  try {
-    value = raw ? (JSON.parse(raw) as T) : fallback
-  } catch {
-    value = fallback
-  }
-  cache.set(key, { raw, value })
-  return value
-}
+// ── Profile ───────────────────────────────────────────────────────────────
 
-function writeLocal<T>(key: string, value: T | null) {
-  try {
-    if (value === null) window.localStorage.removeItem(key)
-    else window.localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    // storage unavailable
-  }
-  cache.delete(key)
-  emit(key)
+async function fetchProfile(): Promise<SportProfile | null> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('sport_profiles')
+    .select('*')
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return data ? rowToProfile(data as ProfileRow) : null
 }
-
-function useLocalStore<T>(key: string, fallback: T) {
-  const raw = useSyncExternalStore(
-    useCallback(cb => subscribe(key, cb), [key]),
-    useCallback(() => readSnapshot(key, fallback), [key, fallback]),
-    () => SERVER as unknown as T,
-  )
-  const isLoading = raw === (SERVER as unknown as T)
-  const value = isLoading ? fallback : raw
-  const set = useCallback((v: T | null) => writeLocal(key, v), [key])
-  return { value, isLoading, set }
-}
-
-// ── Public hooks ──
 
 export function useSportProfile() {
-  const { value: profile, isLoading, set } = useLocalStore<SportProfile | null>(PROFILE_KEY, null)
+  const { data, isLoading, mutate } = useSWR<SportProfile | null>('sport_profile', fetchProfile)
+  const profile = data ?? null
 
-  const saveProfile = useCallback((value: SportProfile) => set(value), [set])
+  async function saveProfile(value: SportProfile) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+    const { error } = await supabase.from('sport_profiles').upsert(
+      { user_id: user.id, ...profileToRow(value), updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    )
+    if (error) throw error
+    await mutate()
+  }
 
-  const updateProfile = useCallback(
-    (patch: Partial<SportProfile>) => {
-      if (!profile) return
-      set({ ...profile, ...patch })
-    },
-    [set, profile],
-  )
+  async function updateProfile(patch: Partial<SportProfile>) {
+    if (!profile) return
+    await saveProfile({ ...profile, ...patch })
+  }
 
-  const resetProfile = useCallback(() => set(null), [set])
+  async function resetProfile() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    // Wipe the whole gym section for this user.
+    await Promise.all([
+      supabase.from('sport_lifts').delete().eq('user_id', user.id),
+      supabase.from('sport_body_entries').delete().eq('user_id', user.id),
+      supabase.from('sport_profiles').delete().eq('user_id', user.id),
+    ])
+    await mutate(null)
+  }
 
   return { profile, isLoading, saveProfile, updateProfile, resetProfile }
 }
 
+// ── Body-weight log ───────────────────────────────────────────────────────
+
+async function fetchBody(): Promise<BodyEntry[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('sport_body_entries')
+    .select('*')
+    .order('entry_date', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map(r => ({ id: r.id, date: r.entry_date, weightKg: r.weight_kg }))
+}
+
 export function useBodyLog() {
-  const { value: entries, isLoading, set } = useLocalStore<BodyEntry[]>(BODY_KEY, EMPTY_BODY)
+  const { data, isLoading, mutate } = useSWR<BodyEntry[]>('sport_body', fetchBody)
+  const entries = data ?? EMPTY_BODY
 
-  const addEntry = useCallback(
-    (date: string, weightKg: number) => {
-      // One entry per date — replace if it already exists.
-      const next = [...entries.filter(e => e.date !== date), { id: newId(), date, weightKg }]
-        .sort((a, b) => a.date.localeCompare(b.date))
-      set(next)
-    },
-    [entries, set],
-  )
+  async function addEntry(date: string, weightKg: number) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+    // One entry per date — upsert replaces an existing weigh-in for that day.
+    const { error } = await supabase.from('sport_body_entries').upsert(
+      { user_id: user.id, entry_date: date, weight_kg: weightKg },
+      { onConflict: 'user_id,entry_date' },
+    )
+    if (error) throw error
+    await mutate()
+  }
 
-  const deleteEntry = useCallback(
-    (id: string) => set(entries.filter(e => e.id !== id)),
-    [entries, set],
-  )
+  async function deleteEntry(id: string) {
+    const supabase = createClient()
+    const { error } = await supabase.from('sport_body_entries').delete().eq('id', id)
+    if (error) throw error
+    await mutate()
+  }
 
   return { entries, isLoading, addEntry, deleteEntry }
 }
 
+// ── Lift log ──────────────────────────────────────────────────────────────
+
+async function fetchLifts(): Promise<LiftEntry[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('sport_lifts')
+    .select('*')
+    .order('lift_date', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map(r => ({
+    id: r.id,
+    date: r.lift_date,
+    lift: r.lift as LiftKey,
+    weightKg: r.weight_kg,
+    reps: r.reps,
+    sets: r.sets ?? 1,
+  }))
+}
+
 export function useLiftLog() {
-  const { value: entries, isLoading, set } = useLocalStore<LiftEntry[]>(LIFT_KEY, EMPTY_LIFTS)
+  const { data, isLoading, mutate } = useSWR<LiftEntry[]>('sport_lifts', fetchLifts)
+  const entries = data ?? EMPTY_LIFTS
 
-  const addEntry = useCallback(
-    (entry: Omit<LiftEntry, 'id'>) => {
-      const next = [...entries, { ...entry, id: newId() }].sort((a, b) => a.date.localeCompare(b.date))
-      set(next)
-    },
-    [entries, set],
-  )
+  async function addEntry(entry: Omit<LiftEntry, 'id'>) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+    const { error } = await supabase.from('sport_lifts').insert({
+      user_id: user.id,
+      lift_date: entry.date,
+      lift: entry.lift,
+      weight_kg: entry.weightKg,
+      reps: entry.reps,
+      sets: entry.sets,
+    })
+    if (error) throw error
+    await mutate()
+  }
 
-  const deleteEntry = useCallback(
-    (id: string) => set(entries.filter(e => e.id !== id)),
-    [entries, set],
-  )
+  async function deleteEntry(id: string) {
+    const supabase = createClient()
+    const { error } = await supabase.from('sport_lifts').delete().eq('id', id)
+    if (error) throw error
+    await mutate()
+  }
 
   return { entries, isLoading, addEntry, deleteEntry }
+}
+
+// ── Workout calendar (one workout per day) ────────────────────────────────
+
+async function fetchWorkouts(): Promise<WorkoutEntry[]> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('sport_workouts')
+    .select('*')
+    .order('workout_date', { ascending: true })
+  if (error) throw error
+  return (data ?? []).map(r => ({ id: r.id, date: r.workout_date, type: r.type as WorkoutType }))
+}
+
+export function useWorkoutLog() {
+  const { data, isLoading, mutate } = useSWR<WorkoutEntry[]>('sport_workouts', fetchWorkouts)
+  const entries = data ?? EMPTY_WORKOUTS
+
+  async function setWorkout(date: string, type: WorkoutType) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+    // One workout per day — upsert replaces the day's type.
+    const { error } = await supabase.from('sport_workouts').upsert(
+      { user_id: user.id, workout_date: date, type },
+      { onConflict: 'user_id,workout_date' },
+    )
+    if (error) throw error
+    await mutate()
+  }
+
+  async function removeWorkout(date: string) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+    const { error } = await supabase
+      .from('sport_workouts')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('workout_date', date)
+    if (error) throw error
+    await mutate()
+  }
+
+  return { entries, isLoading, setWorkout, removeWorkout }
 }

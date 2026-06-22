@@ -10,10 +10,11 @@ interface Props {
   profile: SportProfile
   lifts: LiftEntry[]
   bodyEntries: number
+  workoutDates?: string[]
 }
 
-export default function SportProfileCard({ profile, lifts, bodyEntries }: Props) {
-  const level = getSportLevel(lifts, bodyEntries, profile.weightKg)
+export default function SportProfileCard({ profile, lifts, bodyEntries, workoutDates = [] }: Props) {
+  const level = getSportLevel(lifts, bodyEntries, profile.weightKg, workoutDates)
   const { current: rank, next: nextRank, progress } = getRankByLevel(level)
   const bmiValue = bmi(profile)
   const bmiTag = bmiLabel(bmiValue)

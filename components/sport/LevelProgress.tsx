@@ -8,10 +8,11 @@ interface Props {
   lifts: LiftEntry[]
   bodyEntries: number
   bodyWeightKg: number
+  workoutDates?: string[]
 }
 
-export default function LevelProgress({ lifts, bodyEntries, bodyWeightKg }: Props) {
-  const p = getSportProgress(lifts, bodyEntries, bodyWeightKg)
+export default function LevelProgress({ lifts, bodyEntries, bodyWeightKg, workoutDates = [] }: Props) {
+  const p = getSportProgress(lifts, bodyEntries, bodyWeightKg, workoutDates)
   const { current: rank, next: nextRank } = getRankByLevel(p.level)
   const pct = (p.xpIntoLevel / XP_RULES.xpPerLevel) * 100
 

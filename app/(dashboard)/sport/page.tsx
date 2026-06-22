@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LayoutDashboard, Dumbbell, Flame, Target } from 'lucide-react'
+import { LayoutDashboard, Dumbbell, Flame, Target, CalendarDays } from 'lucide-react'
 import Header from '@/components/layout/Header'
 import SportOnboarding from '@/components/sport/SportOnboarding'
 import SportProfileCard from '@/components/sport/SportProfileCard'
@@ -10,13 +10,15 @@ import LevelProgress from '@/components/sport/LevelProgress'
 import DietCard from '@/components/sport/DietCard'
 import BodyWeightPanel from '@/components/sport/BodyWeightPanel'
 import LiftsPanel from '@/components/sport/LiftsPanel'
+import WorkoutCalendar from '@/components/sport/WorkoutCalendar'
 import SportGoals from '@/components/sport/SportGoals'
-import { useSportProfile, useBodyLog, useLiftLog } from '@/hooks/useSport'
+import { useSportProfile, useBodyLog, useLiftLog, useWorkoutLog } from '@/hooks/useSport'
 import type { Phase } from '@/lib/sport'
 
 const TABS = [
   { id: 'overview', label: "Vue d'ensemble", icon: LayoutDashboard },
   { id: 'stats', label: 'Stats', icon: Dumbbell },
+  { id: 'calendar', label: 'Séances', icon: CalendarDays },
   { id: 'diet', label: 'Diète', icon: Flame },
   { id: 'goals', label: 'Objectifs', icon: Target },
 ] as const
@@ -54,7 +56,9 @@ export default function SportPage() {
   const { profile, isLoading, saveProfile, updateProfile } = useSportProfile()
   const { entries: body, addEntry: addBody, deleteEntry: delBody } = useBodyLog()
   const { entries: lifts, addEntry: addLift, deleteEntry: delLift } = useLiftLog()
+  const { entries: workouts, setWorkout, removeWorkout } = useWorkoutLog()
 
+  const workoutDates = workouts.map(w => w.date)
   const setPhase = (phase: Phase) => updateProfile({ phase })
 
   return (
@@ -97,10 +101,10 @@ export default function SportPage() {
                 <motion.div key="overview" {...fadeSlide}>
                   <motion.div variants={stagger} initial="initial" animate="animate" className="space-y-4">
                     <motion.div variants={item}>
-                      <SportProfileCard profile={profile} lifts={lifts} bodyEntries={body.length} />
+                      <SportProfileCard profile={profile} lifts={lifts} bodyEntries={body.length} workoutDates={workoutDates} />
                     </motion.div>
                     <motion.div variants={item}>
-                      <LevelProgress lifts={lifts} bodyEntries={body.length} bodyWeightKg={profile.weightKg} />
+                      <LevelProgress lifts={lifts} bodyEntries={body.length} bodyWeightKg={profile.weightKg} workoutDates={workoutDates} />
                     </motion.div>
                     <motion.div variants={item}>
                       <DietCard profile={profile} onPhaseChange={setPhase} />
@@ -120,6 +124,15 @@ export default function SportPage() {
                       <SectionHeader title="Forces" subtitle="Enregistrez vos séries et suivez vos 1RM estimés" />
                       <LiftsPanel entries={lifts} profile={profile} onAdd={addLift} onDelete={delLift} />
                     </motion.div>
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {activeTab === 'calendar' && (
+                <motion.div key="calendar" {...fadeSlide}>
+                  <motion.div variants={item}>
+                    <SectionHeader title="Calendrier" subtitle="Marquez votre séance du jour — Push · Pull · Legs · Arms" />
+                    <WorkoutCalendar entries={workouts} onSet={setWorkout} onRemove={removeWorkout} />
                   </motion.div>
                 </motion.div>
               )}

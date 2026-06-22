@@ -5,7 +5,7 @@ import { Wallet, Dumbbell } from 'lucide-react'
 import { useSnapshots } from '@/hooks/useSnapshots'
 import { useAssets } from '@/hooks/useAssets'
 import { useLiabilities } from '@/hooks/useLiabilities'
-import { useSportProfile, useLiftLog, useBodyLog } from '@/hooks/useSport'
+import { useSportProfile, useLiftLog, useBodyLog, useWorkoutLog } from '@/hooks/useSport'
 import { getLevel, getRankByLevel } from '@/lib/system'
 import { getSportLevel } from '@/lib/sport'
 
@@ -16,13 +16,14 @@ export default function GlobalRankPanel() {
   const { profile } = useSportProfile()
   const { entries: lifts } = useLiftLog()
   const { entries: body } = useBodyLog()
+  const { entries: workouts } = useWorkoutLog()
 
   const latest = snapshots.length ? snapshots[snapshots.length - 1] : null
   const netWorth = latest?.net_worth ?? totalAssets - totalLiabilities
 
   // Each section contributes its level; the global level is their sum.
   const financeLevel = netWorth > 0 ? getLevel(netWorth) : 0
-  const sportLevel = profile ? getSportLevel(lifts, body.length, profile.weightKg) : 0
+  const sportLevel = profile ? getSportLevel(lifts, body.length, profile.weightKg, workouts.map(w => w.date)) : 0
   const globalLevel = financeLevel + sportLevel
 
   const { current: rank, next: nextRank, progress } = getRankByLevel(globalLevel)

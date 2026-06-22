@@ -45,7 +45,29 @@ export interface LiftEntry {
   lift: LiftKey
   weightKg: number
   reps: number
+  sets: number // number of sets performed in this logged entry
 }
+
+// ── Workout calendar (Push / Pull / Legs / Arms split) ──
+
+export type WorkoutType = 'push' | 'pull' | 'legs' | 'arms' | 'full' | 'cardio'
+
+export interface WorkoutEntry {
+  id: string
+  date: string // YYYY-MM-DD — one workout per day
+  type: WorkoutType
+}
+
+export const WORKOUTS: Record<WorkoutType, { label: string; short: string; color: string }> = {
+  push: { label: 'Push (pecs · épaules · triceps)', short: 'Push', color: '#34d399' },
+  pull: { label: 'Pull (dos · biceps)', short: 'Pull', color: '#22d3ee' },
+  legs: { label: 'Legs (jambes)', short: 'Legs', color: '#a78bfa' },
+  arms: { label: 'Arms (bras)', short: 'Arms', color: '#f59e0b' },
+  full: { label: 'Full body', short: 'Full', color: '#f472b6' },
+  cardio: { label: 'Cardio', short: 'Cardio', color: '#38bdf8' },
+}
+
+export const WORKOUT_KEYS = Object.keys(WORKOUTS) as WorkoutType[]
 
 // ── Reference data ──
 
@@ -152,10 +174,10 @@ export function formatKg(value: number): string {
   return `${Math.round(value * 10) / 10} kg`
 }
 
-/** A single set's tonnage. Bodyweight moves (no added load) use the body weight. */
+/** Total tonnage of a logged entry (load × reps × sets). Bodyweight moves use the body weight. */
 export function setVolume(e: LiftEntry, bodyWeightKg = 0): number {
   const load = e.weightKg > 0 ? e.weightKg : bodyWeightKg
-  return load * e.reps
+  return load * e.reps * (e.sets ?? 1)
 }
 
 /** Heaviest weight ever logged for an exercise. */
@@ -223,11 +245,20 @@ export interface SportProgress {
   weighInXp: number
 }
 
-/** Gym progression — strength rating (current) + assiduity XP (volume, sessions, weigh-ins). */
-export function getSportProgress(lifts: LiftEntry[], bodyEntries: number, bodyWeightKg = 0): SportProgress {
+/**
+ * Gym progression — strength rating (current) + assiduity XP (volume, sessions, weigh-ins).
+ * `sessionDates` are extra training days from the workout calendar; they're unioned with
+ * the days that have logged lifts so a calendar entry counts as a session on its own.
+ */
+export function getSportProgress(
+  lifts: LiftEntry[],
+  bodyEntries: number,
+  bodyWeightKg = 0,
+  sessionDates: string[] = [],
+): SportProgress {
   const force = forceScore(lifts, bodyWeightKg)
   const totalVolume = lifts.reduce((s, e) => s + setVolume(e, bodyWeightKg), 0)
-  const sessions = workoutSessions(lifts)
+  const sessions = new Set([...lifts.map(e => e.date), ...sessionDates]).size
 
   const forceXp = Math.round(force * XP_RULES.xpPerForceKg)
   const volumeXp = Math.floor(totalVolume / XP_RULES.volumeKgPerXp)
@@ -252,6 +283,11 @@ export function getSportProgress(lifts: LiftEntry[], bodyEntries: number, bodyWe
   }
 }
 
-export function getSportLevel(lifts: LiftEntry[], bodyEntries: number, bodyWeightKg = 0): number {
-  return getSportProgress(lifts, bodyEntries, bodyWeightKg).level
+export function getSportLevel(
+  lifts: LiftEntry[],
+  bodyEntries: number,
+  bodyWeightKg = 0,
+  sessionDates: string[] = [],
+): number {
+  return getSportProgress(lifts, bodyEntries, bodyWeightKg, sessionDates).level
 }

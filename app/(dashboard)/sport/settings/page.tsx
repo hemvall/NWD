@@ -24,21 +24,15 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
 
 export default function SportSettingsPage() {
   const router = useRouter()
-  const { profile, isLoading, saveProfile, updateProfile } = useSportProfile()
+  const { profile, isLoading, saveProfile, updateProfile, resetProfile } = useSportProfile()
 
   const [override, setOverride] = useState('')
   const [overrideSaved, setOverrideSaved] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
 
-  function handleReset() {
+  async function handleReset() {
     if (!confirmReset) { setConfirmReset(true); return }
-    try {
-      localStorage.removeItem('nwd_sport_profile')
-      localStorage.removeItem('nwd_sport_body')
-      localStorage.removeItem('nwd_sport_lifts')
-    } catch {
-      // ignore
-    }
+    await resetProfile()
     router.push('/sport')
     router.refresh()
   }
